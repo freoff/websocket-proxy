@@ -14,6 +14,7 @@ var lastResult;
 const wss = new WebSocket.Server({ server });
 var wsClient;
 wss.on('connection', (ws) => {
+  console.log('new connection clients', wss.clients.size);
   if (lastResult) {
     console.log('sending last result', lastResult.length);
     ws.send(lastResult);
@@ -27,6 +28,7 @@ function openConnectionToFeatureProcessing() {
       'ws://webtask.future-processing.com:8068/ws/currencies',
     );
     wsClient.on('message', (data) => {
+      console.log('new data', data);
       brodcastMessage(data);
       lastResult = data;
     });
