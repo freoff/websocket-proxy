@@ -8,11 +8,14 @@ const app = express();
 const server = http.createServer(app);
 
 //initialize the WebSocket server instance
-const wss = new WebSocket.Server({ server });
 
+const wss = new WebSocket.Server({ server });
+var wsClient;
+var externalConnection = false;
 wss.on('connection', (ws) => {
-  console.log('connection ');
-  openConnectionToFeatureProcessing();
+  if (!externalConnection) {
+    openConnectionToFeatureProcessing();
+  }
 });
 
 //start our server
@@ -20,17 +23,25 @@ server.listen(port, () => {
   console.log(`Server started on port ${server.address().port} :)`);
 });
 
-let wsClient;
 function openConnectionToFeatureProcessing() {
-  console.log('connect to FP');
-  const websocketClient = new WebSocket(
+  wsClient = new WebSocket(
     'ws://webtask.future-processing.com:8068/ws/currencies',
   );
-  websocketClient.on('message', (data) => {
-    console.log(data);
+
+  wsClient.on('open', (ws) => (externalConnection = true));
+  wsClient.on('close', (ws) => (externalConnection = false));
+  wsClient.on('error', (ws) => (externalConnection = false));
+  wsClient.on('message', (data) => {
     brodcastMessage(data);
   });
 }
 function brodcastMessage(data) {
-  wss.clients.forEach((client) => client.send(data));
+  console.log(
+    JSON.parse(data).PublicationDate + 'active clients ' + wss.clients.size,
+  );
+  if (!wss.clients.size) {
+    wsClient.close();
+  } else {
+    wss.clients.forEach((client) => client.send(data));
+  }
 }
