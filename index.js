@@ -1,7 +1,7 @@
 const express = require('express');
 const http = require('http');
 const WebSocket = require('ws');
-
+const port = process.env.PORT || 3000;
 const app = express();
 
 //initialize a simple http server
@@ -16,7 +16,7 @@ wss.on('connection', (ws) => {
 });
 
 //start our server
-server.listen(3000, () => {
+server.listen(port, () => {
   console.log(`Server started on port ${server.address().port} :)`);
 });
 
